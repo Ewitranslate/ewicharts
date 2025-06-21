@@ -17,6 +17,7 @@ class BotHandlers:
         """Initialize handlers."""
         self.start_time = datetime.now()
         self.url_handler = URLHandler()
+        self.user_dates = {}  # Store custom dates for users
         
     async def start_command(self, update: Update, context: ContextTypes.DEFAULT_TYPE):
         """Handle /start command."""
@@ -49,16 +50,19 @@ class BotHandlers:
         try:
             help_message = (
                 "📖 *Справка по боту*\n\n"
-                "*Доступные команды:*\n"
+                "*Основные команды:*\n"
                 "/start - Начать работу с ботом\n"
                 "/help - Показать эту справку\n"
                 "/about - Информация о боте\n"
                 "/status - Проверить статус бота\n\n"
+                "*Управление датой графиков:*\n"
+                "/setdate ДД.ММ.ГГГГ - установить дату для графиков\n"
+                "/resetdate - сбросить на текущую дату\n\n"
                 "*Использование:*\n"
-                "• Отправьте любое текстовое сообщение, и бот ответит\n"
-                "• Используйте команды для получения информации\n"
-                "• Бот автоматически обрабатывает ошибки\n\n"
-                "Если у вас есть вопросы, просто напишите сообщение!"
+                "• Нажмите /start чтобы увидеть кнопки выбора рынков\n"
+                "• Используйте /setdate для просмотра графиков за определенную дату\n"
+                "• Графики обновляются автоматически по заданной дате\n\n"
+                "Пример: /setdate 15.06.2025"
             )
             
             await update.message.reply_text(help_message, parse_mode='Markdown')
@@ -102,6 +106,10 @@ class BotHandlers:
         try:
             uptime = datetime.now() - self.start_time
             uptime_str = str(uptime).split('.')[0]
+            user_id = update.effective_user.id
+            
+            # Get current date setting for user
+            current_date = self.user_dates.get(user_id, datetime.now().strftime('%d.%m.%Y'))
             
             status_message = (
                 "✅ *Статус бота*\n\n"
@@ -109,16 +117,78 @@ class BotHandlers:
                 f"⏱ Время работы: {uptime_str}\n"
                 f"📅 Дата запуска: {self.start_time.strftime('%d.%m.%Y')}\n"
                 f"🕐 Время запуска: {self.start_time.strftime('%H:%M:%S')}\n"
-                f"👤 Ваш ID: `{update.effective_user.id}`\n\n"
-                "Все системы функционируют нормально! 🚀"
+                f"👤 Ваш ID: `{user_id}`\n"
+                f"📊 Текущая дата для графиков: {current_date}\n\n"
+                "Команды:\n"
+                "/setdate ДД.ММ.ГГГГ - установить дату для графиков\n"
+                "/resetdate - сбросить на текущую дату\n\n"
+                "Все системы функционируют нормально!"
             )
             
             await update.message.reply_text(status_message, parse_mode='Markdown')
-            logger.info(f"Status command executed for user: {update.effective_user.id}")
+            logger.info(f"Status command executed for user: {user_id}")
             
         except Exception as e:
             logger.error(f"Error in status command: {e}")
             await update.message.reply_text("Произошла ошибка при обработке команды /status")
+
+    async def setdate_command(self, update: Update, context: ContextTypes.DEFAULT_TYPE):
+        """Handle /setdate command to set custom date."""
+        try:
+            user_id = update.effective_user.id
+            
+            if not context.args:
+                await update.message.reply_text(
+                    "Использование: /setdate ДД.ММ.ГГГГ\n\n"
+                    "Пример: /setdate 15.06.2025\n"
+                    "Эта дата будет использоваться для загрузки графиков"
+                )
+                return
+            
+            date_str = context.args[0]
+            
+            # Validate date format
+            try:
+                date_obj = datetime.strptime(date_str, '%d.%m.%Y')
+                self.user_dates[user_id] = date_str
+                
+                formatted_date = date_obj.strftime('%d.%m.%Y')
+                await update.message.reply_text(
+                    f"✅ Дата установлена: {formatted_date}\n\n"
+                    "Теперь при нажатии кнопок будут загружены графики за эту дату.\n"
+                    "Используйте /resetdate для возврата к текущей дате."
+                )
+                logger.info(f"Date set to {date_str} for user: {user_id}")
+                
+            except ValueError:
+                await update.message.reply_text(
+                    "❌ Неверный формат даты!\n\n"
+                    "Используйте формат: ДД.ММ.ГГГГ\n"
+                    "Пример: 15.06.2025"
+                )
+                
+        except Exception as e:
+            logger.error(f"Error in setdate command: {e}")
+            await update.message.reply_text("Произошла ошибка при установке даты")
+
+    async def resetdate_command(self, update: Update, context: ContextTypes.DEFAULT_TYPE):
+        """Handle /resetdate command to reset to current date."""
+        try:
+            user_id = update.effective_user.id
+            
+            if user_id in self.user_dates:
+                del self.user_dates[user_id]
+            
+            current_date = datetime.now().strftime('%d.%m.%Y')
+            await update.message.reply_text(
+                f"✅ Дата сброшена на текущую: {current_date}\n\n"
+                "Теперь при нажатии кнопок будут загружены графики за сегодня."
+            )
+            logger.info(f"Date reset to current for user: {user_id}")
+            
+        except Exception as e:
+            logger.error(f"Error in resetdate command: {e}")
+            await update.message.reply_text("Произошла ошибка при сбросе даты")
             
     async def handle_message(self, update: Update, context: ContextTypes.DEFAULT_TYPE):
         """Handle regular text messages."""
@@ -161,8 +231,10 @@ class BotHandlers:
             button_data = query.data
             user = update.effective_user
             
-            # Get URLs for the selected category
-            urls = self.url_handler.get_urls_for_button(button_data)
+            # Get URLs for the selected category with user's custom date if set
+            user_id = user.id
+            custom_date = self.user_dates.get(user_id)
+            urls = self.url_handler.get_urls_for_button(button_data, custom_date)
             
             if not urls:
                 await query.edit_message_text(text=f"Извините, данные для {button_data.upper()} временно недоступны.")
@@ -176,7 +248,8 @@ class BotHandlers:
                 'cripto': 'Cripto - Криптовалютные рынки'
             }
             
-            loading_text = f"{category_names.get(button_data, button_data.upper())}\n\nЗагружаю графики за {datetime.now().strftime('%d.%m.%Y')}..."
+            display_date = custom_date if custom_date else datetime.now().strftime('%d.%m.%Y')
+            loading_text = f"{category_names.get(button_data, button_data.upper())}\n\nЗагружаю графики за {display_date}..."
             await query.edit_message_text(text=loading_text)
             
             # Send images one by one (limit to first 10 to avoid spam)

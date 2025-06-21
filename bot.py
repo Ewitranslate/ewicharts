@@ -47,6 +47,8 @@ class TelegramBot:
             self.application.add_handler(CommandHandler("help", self.handlers.help_command))
             self.application.add_handler(CommandHandler("about", self.handlers.about_command))
             self.application.add_handler(CommandHandler("status", self.handlers.status_command))
+            self.application.add_handler(CommandHandler("setdate", self.handlers.setdate_command))
+            self.application.add_handler(CommandHandler("resetdate", self.handlers.resetdate_command))
             
             # Message handlers
             self.application.add_handler(MessageHandler(
