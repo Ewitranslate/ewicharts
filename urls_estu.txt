@@ -1,8 +1,8 @@
-https://my.elliottwave.com/chartfolder/estu/{MM}{DD}{YYYY}europeperformance.png
-https://my.elliottwave.com/chartfolder/estu/{MM}{DD}{YYYY}stoxxeuropeD.gif
-https://my.elliottwave.com/chartfolder/estu/{MM}{DD}{YYYY}eurostoxx50future120M.gif
-https://my.elliottwave.com/chartfolder/estu/{MM}{DD}{YYYY}daxfuture120M.gif
-https://my.elliottwave.com/chartfolder/estu/{MM}{DD}{YYYY}ftsefuture120M.gif
+https://my.elliottwave.com/chartfolder/estu/{MM}{YYYY}europeperformance.png
+https://my.elliottwave.com/chartfolder/estu/{MM}{YYYY}stoxxeuropeD.gif
+https://my.elliottwave.com/chartfolder/estu/{MM}{YYYY}eurostoxx50future120M.gif
+https://my.elliottwave.com/chartfolder/estu/{MM}{YYYY}daxfuture120M.gif
+https://my.elliottwave.com/chartfolder/estu/{MM}{YYYY}ftsefuture120M.gif
 https://my.elliottwave.com/chartfolder/estu/{MM}{DD}{YYYY}smifuture120M.gif
 https://my.elliottwave.com/chartfolder/estu/{MM}{DD}{YYYY}ezuW.gif
 https://my.elliottwave.com/chartfolder/estu/{MM}{DD}{YYYY}ewgW.gif
