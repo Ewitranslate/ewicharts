@@ -58,6 +58,10 @@ class BotHandlers:
                 "*Управление датой графиков:*\n"
                 "/setdate ДД.ММ.ГГГГ - установить дату для графиков\n"
                 "/resetdate - сбросить на текущую дату\n\n"
+                "*Управление ссылками:*\n"
+                "/addurl <категория> <ссылка> - добавить ссылку\n"
+                "/removeurl <категория> <ссылка> - удалить ссылку\n"
+                "/listurl <категория> - показать все ссылки\n\n"
                 "*Использование:*\n"
                 "• Нажмите /start чтобы увидеть кнопки выбора рынков\n"
                 "• Используйте /setdate для просмотра графиков за определенную дату\n"
@@ -189,6 +193,116 @@ class BotHandlers:
         except Exception as e:
             logger.error(f"Error in resetdate command: {e}")
             await update.message.reply_text("Произошла ошибка при сбросе даты")
+
+    async def addurl_command(self, update: Update, context: ContextTypes.DEFAULT_TYPE):
+        """Handle /addurl command to add URL to category."""
+        try:
+            if len(context.args) < 2:
+                await update.message.reply_text(
+                    "Использование: /addurl <категория> <ссылка>\n\n"
+                    "Категории: estu, stu, astu, cripto\n"
+                    "Пример: /addurl estu https://example.com/chart{MM}{YYYY}image.png\n\n"
+                    "Используйте {MM} для месяца, {YYYY} для года, {DD} для дня, {YY} для двузначного года"
+                )
+                return
+            
+            category = context.args[0].lower()
+            url = context.args[1]
+            
+            if category not in ['estu', 'stu', 'astu', 'cripto']:
+                await update.message.reply_text(
+                    "Неверная категория! Доступные: estu, stu, astu, cripto"
+                )
+                return
+            
+            if self.url_handler.add_url_to_category(category, url):
+                await update.message.reply_text(
+                    f"✅ Ссылка добавлена в категорию {category.upper()}:\n{url}"
+                )
+                logger.info(f"URL added to {category}: {url}")
+            else:
+                await update.message.reply_text(
+                    f"❌ Ошибка добавления ссылки (возможно, она уже существует)"
+                )
+                
+        except Exception as e:
+            logger.error(f"Error in addurl command: {e}")
+            await update.message.reply_text("Произошла ошибка при добавлении ссылки")
+
+    async def removeurl_command(self, update: Update, context: ContextTypes.DEFAULT_TYPE):
+        """Handle /removeurl command to remove URL from category."""
+        try:
+            if len(context.args) < 2:
+                await update.message.reply_text(
+                    "Использование: /removeurl <категория> <ссылка>\n\n"
+                    "Категории: estu, stu, astu, cripto\n"
+                    "Пример: /removeurl estu https://example.com/chart{MM}{YYYY}image.png"
+                )
+                return
+            
+            category = context.args[0].lower()
+            url = context.args[1]
+            
+            if category not in ['estu', 'stu', 'astu', 'cripto']:
+                await update.message.reply_text(
+                    "Неверная категория! Доступные: estu, stu, astu, cripto"
+                )
+                return
+            
+            if self.url_handler.remove_url_from_category(category, url):
+                await update.message.reply_text(
+                    f"✅ Ссылка удалена из категории {category.upper()}:\n{url}"
+                )
+                logger.info(f"URL removed from {category}: {url}")
+            else:
+                await update.message.reply_text(
+                    f"❌ Ссылка не найдена в категории {category.upper()}"
+                )
+                
+        except Exception as e:
+            logger.error(f"Error in removeurl command: {e}")
+            await update.message.reply_text("Произошла ошибка при удалении ссылки")
+
+    async def listurl_command(self, update: Update, context: ContextTypes.DEFAULT_TYPE):
+        """Handle /listurl command to list URLs in category."""
+        try:
+            if not context.args:
+                await update.message.reply_text(
+                    "Использование: /listurl <категория>\n\n"
+                    "Категории: estu, stu, astu, cripto\n"
+                    "Пример: /listurl estu"
+                )
+                return
+            
+            category = context.args[0].lower()
+            
+            if category not in ['estu', 'stu', 'astu', 'cripto']:
+                await update.message.reply_text(
+                    "Неверная категория! Доступные: estu, stu, astu, cripto"
+                )
+                return
+            
+            urls = self.url_handler.list_urls_for_category(category)
+            
+            if not urls:
+                await update.message.reply_text(
+                    f"Категория {category.upper()} пуста"
+                )
+                return
+            
+            urls_text = f"Ссылки в категории {category.upper()} ({len(urls)} шт.):\n\n"
+            for i, url in enumerate(urls, 1):
+                urls_text += f"{i}. {url}\n"
+            
+            # Split message if too long
+            if len(urls_text) > 4000:
+                await update.message.reply_text(f"Категория {category.upper()} содержит {len(urls)} ссылок (слишком много для отображения)")
+            else:
+                await update.message.reply_text(urls_text)
+                
+        except Exception as e:
+            logger.error(f"Error in listurl command: {e}")
+            await update.message.reply_text("Произошла ошибка при получении списка ссылок")
             
     async def handle_message(self, update: Update, context: ContextTypes.DEFAULT_TYPE):
         """Handle regular text messages."""

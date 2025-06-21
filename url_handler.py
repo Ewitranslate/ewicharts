@@ -42,6 +42,56 @@ class URLHandler:
             # Fallback to current date if invalid
             return self.get_current_date_formatted()
     
+    def add_url_to_category(self, category: str, url: str) -> bool:
+        """Add URL to specified category file."""
+        try:
+            if category not in self.category_files:
+                return False
+            
+            file_path = self.category_files[category]
+            
+            # Check if URL already exists
+            existing_urls = self.load_urls_from_file(category)
+            if url in existing_urls:
+                return False
+            
+            # Add URL to file
+            with open(file_path, 'a', encoding='utf-8') as file:
+                file.write(f"{url}\n")
+            
+            return True
+        except Exception as e:
+            print(f"Error adding URL to {category}: {e}")
+            return False
+    
+    def remove_url_from_category(self, category: str, url: str) -> bool:
+        """Remove URL from specified category file."""
+        try:
+            if category not in self.category_files:
+                return False
+            
+            file_path = self.category_files[category]
+            existing_urls = self.load_urls_from_file(category)
+            
+            if url not in existing_urls:
+                return False
+            
+            # Remove URL and rewrite file
+            updated_urls = [u for u in existing_urls if u != url]
+            
+            with open(file_path, 'w', encoding='utf-8') as file:
+                for u in updated_urls:
+                    file.write(f"{u}\n")
+            
+            return True
+        except Exception as e:
+            print(f"Error removing URL from {category}: {e}")
+            return False
+    
+    def list_urls_for_category(self, category: str) -> List[str]:
+        """List all URLs for specified category."""
+        return self.load_urls_from_file(category)
+    
     def load_urls_from_file(self, category: str) -> List[str]:
         """Load URLs from file for given category."""
         try:
