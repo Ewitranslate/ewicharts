@@ -1,0 +1,16 @@
+https://my.elliottwave.com/chartfolder/fx/dwm/xmr-tc-{MM}{DD}{YYYY}-d1.gif
+https://my.elliottwave.com/chartfolder/fx/dwm/xmr-tc-{MM}{DD}{YYYY}-d2.gif
+https://my.elliottwave.com/chartfolder/fx/dwm/xmr-tc-{MM}{DD}{YYYY}-d3.gif
+https://my.elliottwave.com/chartfolder/fx/dwm/xmr-tc-{MM}{DD}{YYYY}-d4.gif
+https://my.elliottwave.com/chartfolder/fx/dwm/xbt-tc-{MM}{DD}{YYYY}-d3.gif
+https://my.elliottwave.com/chartfolder/fx/dwm/xbt-tc-{MM}{DD}{YYYY}-d4.gif
+https://my.elliottwave.com/chartfolder/fx/dwm/eth-tc-{MM}{DD}{YYYY}-d3.gif
+https://my.elliottwave.com/chartfolder/fx/dwm/eth-tc-{MM}{DD}{YYYY}-d4.gif
+https://my.elliottwave.com/chartfolder/fx/dwm/ltc-tc-{MM}{DD}{YYYY}-d3.gif
+https://my.elliottwave.com/chartfolder/fx/dwm/ltc-tc-{MM}{DD}{YYYY}-d4.gif
+https://my.elliottwave.com/chartfolder/fx/dwm/bch-tc-{MM}{DD}{YYYY}-d3.gif
+https://my.elliottwave.com/chartfolder/fx/dwm/bch-tc-{MM}{DD}{YYYY}-d4.gif
+https://my.elliottwave.com/chartfolder/fx/dwm/ada-tc-{MM}{DD}{YYYY}-d3.gif
+https://my.elliottwave.com/chartfolder/fx/dwm/ada-tc-{MM}{DD}{YYYY}-d4.gif
+https://my.elliottwave.com/chartfolder/fx/dwm/xrp-tc-{MM}{DD}{YYYY}-d3.gif
+https://my.elliottwave.com/chartfolder/fx/dwm/xrp-tc-{MM}{DD}{YYYY}-d4.gif

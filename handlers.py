@@ -6,6 +6,7 @@ import logging
 from datetime import datetime
 from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup
 from telegram.ext import ContextTypes
+from url_handler import URLHandler
 
 logger = logging.getLogger(__name__)
 
@@ -15,6 +16,7 @@ class BotHandlers:
     def __init__(self):
         """Initialize handlers."""
         self.start_time = datetime.now()
+        self.url_handler = URLHandler()
         
     async def start_command(self, update: Update, context: ContextTypes.DEFAULT_TYPE):
         """Handle /start command."""
@@ -159,19 +161,54 @@ class BotHandlers:
             button_data = query.data
             user = update.effective_user
             
-            if button_data == 'estu':
-                response_text = "Вы выбрали ESTU 🎓\nЭто система для работы с учебными материалами."
-            elif button_data == 'stu':
-                response_text = "Вы выбрали STU 📚\nЭто студенческая информационная система."
-            elif button_data == 'astu':
-                response_text = "Вы выбрали ASTU 🏛️\nЭто административная система университета."
-            elif button_data == 'cripto':
-                response_text = "Вы выбрали Cripto 💰\nЭто раздел для работы с криптовалютами."
-            else:
-                response_text = "Неизвестная опция."
+            # Get URLs for the selected category
+            urls = self.url_handler.get_urls_for_button(button_data)
             
-            await query.edit_message_text(text=response_text)
-            logger.info(f"Button {button_data} pressed by user: {user.username or user.id}")
+            if not urls:
+                await query.edit_message_text(text=f"Извините, данные для {button_data.upper()} временно недоступны.")
+                return
+            
+            # Edit the original message to show loading
+            category_names = {
+                'estu': 'ESTU - Европейские рынки',
+                'stu': 'STU - Американские рынки', 
+                'astu': 'ASTU - Азиатские рынки',
+                'cripto': 'Cripto - Криптовалютные рынки'
+            }
+            
+            loading_text = f"{category_names.get(button_data, button_data.upper())}\n\nЗагружаю графики за {datetime.now().strftime('%d.%m.%Y')}..."
+            await query.edit_message_text(text=loading_text)
+            
+            # Send images one by one (limit to first 10 to avoid spam)
+            sent_count = 0
+            max_images = 10
+            
+            for url in urls[:max_images]:
+                try:
+                    await context.bot.send_photo(
+                        chat_id=query.from_user.id,
+                        photo=url,
+                        caption=f"График {sent_count + 1}"
+                    )
+                    sent_count += 1
+                except Exception as img_error:
+                    logger.warning(f"Failed to send image {url}: {img_error}")
+                    continue
+            
+            # Send summary message
+            if sent_count > 0:
+                summary_text = f"✅ Отправлено {sent_count} графиков для {category_names.get(button_data, button_data.upper())}"
+                if len(urls) > max_images:
+                    summary_text += f"\n(Показаны первые {max_images} из {len(urls)} доступных)"
+            else:
+                summary_text = f"❌ Не удалось загрузить графики для {category_names.get(button_data, button_data.upper())}"
+            
+            await context.bot.send_message(
+                chat_id=query.from_user.id,
+                text=summary_text
+            )
+            
+            logger.info(f"Button {button_data} pressed by user: {user.username or user.id}, sent {sent_count} images")
             
         except Exception as e:
             logger.error(f"Error in button callback: {e}")
