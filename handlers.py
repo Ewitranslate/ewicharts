@@ -157,10 +157,16 @@ class BotHandlers:
                 self.user_dates[user_id] = date_str
                 
                 formatted_date = date_obj.strftime('%d.%m.%Y')
+                # Show the actual format that will be used
+                date_parts = self.url_handler.get_custom_date_formatted(date_str)
+                format_info = f"{date_parts['MM']}{date_parts['YYYY']}"
+                
                 await update.message.reply_text(
-                    f"✅ Дата установлена: {formatted_date}\n\n"
+                    f"✅ Дата установлена: {formatted_date}\n"
+                    f"📅 Формат для URL: {format_info}\n\n"
                     "Теперь при нажатии кнопок будут загружены графики за эту дату.\n"
-                    "Используйте /resetdate для возврата к текущей дате."
+                    "Используйте /resetdate для возврата к текущей дате.\n\n"
+                    f"💡 Примечание: Система использует месяц/год ({format_info}), поэтому даты в одном месяце дают одинаковый результат."
                 )
                 logger.info(f"Date set to {date_str} for user: {user_id}")
                 
@@ -348,6 +354,15 @@ class BotHandlers:
             # Get URLs for the selected category with user's custom date if set
             user_id = user.id
             custom_date = self.user_dates.get(user_id)
+            
+            # Debug logging for date usage
+            if custom_date:
+                date_parts = self.url_handler.get_custom_date_formatted(custom_date)
+                logger.info(f"Using custom date {custom_date} -> MMYYYY: {date_parts['MM']}{date_parts['YYYY']}")
+            else:
+                date_parts = self.url_handler.get_current_date_formatted()
+                logger.info(f"Using current date -> MMYYYY: {date_parts['MM']}{date_parts['YYYY']}")
+            
             urls = self.url_handler.get_urls_for_button(button_data, custom_date)
             
             if not urls:
