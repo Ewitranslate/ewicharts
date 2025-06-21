@@ -24,7 +24,8 @@ class URLHandler:
         return {
             'MM': now.strftime('%m'),
             'DD': now.strftime('%d'),
-            'YYYY': now.strftime('%Y')
+            'YYYY': now.strftime('%Y'),
+            'MMDDYYYY': now.strftime('%m%d%Y')
         }
     
     def get_custom_date_formatted(self, date_str: str) -> dict:
@@ -33,8 +34,9 @@ class URLHandler:
             date_obj = datetime.strptime(date_str, '%d.%m.%Y')
             return {
                 'MM': date_obj.strftime('%m'),
-                'DD': date_obj.strftime('%d'),
-                'YYYY': date_obj.strftime('%Y')
+                'DD': date_obj.strftime('%d'), 
+                'YYYY': date_obj.strftime('%Y'),
+                'MMDDYYYY': date_obj.strftime('%m%d%Y')
             }
         except ValueError:
             # Fallback to current date if invalid
