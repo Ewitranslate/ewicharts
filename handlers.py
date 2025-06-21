@@ -381,11 +381,15 @@ class BotHandlers:
             loading_text = f"{category_names.get(button_data, button_data.upper())}\n\nЗагружаю графики за {display_date}..."
             await query.edit_message_text(text=loading_text)
             
-            # Send images one by one (limit to first 10 to avoid spam)
+            # Send images one by one (try all URLs, limit successful sends)
             sent_count = 0
-            max_images = 10
+            max_images = 20  # Increased limit
+            failed_count = 0
             
-            for url in urls[:max_images]:
+            for i, url in enumerate(urls):
+                if sent_count >= max_images:
+                    break
+                    
                 try:
                     await context.bot.send_photo(
                         chat_id=query.from_user.id,
@@ -394,16 +398,20 @@ class BotHandlers:
                     )
                     sent_count += 1
                 except Exception as img_error:
+                    failed_count += 1
                     logger.warning(f"Failed to send image {url}: {img_error}")
                     continue
             
             # Send summary message
             if sent_count > 0:
                 summary_text = f"✅ Отправлено {sent_count} графиков для {category_names.get(button_data, button_data.upper())}"
-                if len(urls) > max_images:
-                    summary_text += f"\n(Показаны первые {max_images} из {len(urls)} доступных)"
+                if failed_count > 0:
+                    summary_text += f"\n📊 Всего проверено: {len(urls)} ссылок"
+                    summary_text += f"\n✅ Успешно: {sent_count}"
+                    summary_text += f"\n❌ Недоступно: {failed_count}"
             else:
                 summary_text = f"❌ Не удалось загрузить графики для {category_names.get(button_data, button_data.upper())}"
+                summary_text += f"\nПроверено {len(urls)} ссылок, все недоступны для даты {display_date}"
             
             await context.bot.send_message(
                 chat_id=query.from_user.id,
