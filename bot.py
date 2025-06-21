@@ -3,7 +3,7 @@ Telegram bot implementation with basic command handling and message processing.
 """
 
 import logging
-from telegram.ext import Application, CommandHandler, MessageHandler, filters
+from telegram.ext import Application, CommandHandler, MessageHandler, CallbackQueryHandler, filters
 from telegram import Update
 from telegram.ext import ContextTypes
 from handlers import BotHandlers
@@ -53,6 +53,9 @@ class TelegramBot:
                 filters.TEXT & ~filters.COMMAND, 
                 self.handlers.handle_message
             ))
+            
+            # Callback query handler for buttons
+            self.application.add_handler(CallbackQueryHandler(self.handlers.button_callback))
             
             # Error handler
             self.application.add_error_handler(self.handlers.error_handler)

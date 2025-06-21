@@ -4,7 +4,7 @@ Command and message handlers for the Telegram bot.
 
 import logging
 from datetime import datetime
-from telegram import Update
+from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup
 from telegram.ext import ContextTypes
 
 logger = logging.getLogger(__name__)
@@ -23,14 +23,19 @@ class BotHandlers:
             welcome_message = (
                 f"Привет, {user.first_name}! 👋\n\n"
                 "Добро пожаловать в наш Telegram бот!\n\n"
-                "Доступные команды:\n"
-                "/help - Показать справку\n"
-                "/about - Информация о боте\n"
-                "/status - Статус бота\n\n"
-                "Вы также можете отправить мне любое сообщение, и я отвечу на него."
+                "Выберите одну из опций:"
             )
             
-            await update.message.reply_text(welcome_message)
+            # Create inline keyboard with 4 buttons
+            keyboard = [
+                [InlineKeyboardButton("ESTU", callback_data='estu')],
+                [InlineKeyboardButton("STU", callback_data='stu')],
+                [InlineKeyboardButton("ASTU", callback_data='astu')],
+                [InlineKeyboardButton("Cripto", callback_data='cripto')]
+            ]
+            reply_markup = InlineKeyboardMarkup(keyboard)
+            
+            await update.message.reply_text(welcome_message, reply_markup=reply_markup)
             logger.info(f"Start command executed for user: {user.username or user.id}")
             
         except Exception as e:
@@ -145,6 +150,36 @@ class BotHandlers:
                 "Произошла ошибка при обработке вашего сообщения. Попробуйте еще раз."
             )
             
+    async def button_callback(self, update: Update, context: ContextTypes.DEFAULT_TYPE):
+        """Handle button callback queries."""
+        try:
+            query = update.callback_query
+            await query.answer()
+            
+            button_data = query.data
+            user = update.effective_user
+            
+            if button_data == 'estu':
+                response_text = "Вы выбрали ESTU 🎓\nЭто система для работы с учебными материалами."
+            elif button_data == 'stu':
+                response_text = "Вы выбрали STU 📚\nЭто студенческая информационная система."
+            elif button_data == 'astu':
+                response_text = "Вы выбрали ASTU 🏛️\nЭто административная система университета."
+            elif button_data == 'cripto':
+                response_text = "Вы выбрали Cripto 💰\nЭто раздел для работы с криптовалютами."
+            else:
+                response_text = "Неизвестная опция."
+            
+            await query.edit_message_text(text=response_text)
+            logger.info(f"Button {button_data} pressed by user: {user.username or user.id}")
+            
+        except Exception as e:
+            logger.error(f"Error in button callback: {e}")
+            try:
+                await update.callback_query.answer("Произошла ошибка при обработке кнопки")
+            except:
+                pass
+
     async def error_handler(self, update: object, context: ContextTypes.DEFAULT_TYPE):
         """Handle errors that occur during bot operation."""
         try:
