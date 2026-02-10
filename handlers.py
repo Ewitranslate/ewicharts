@@ -176,14 +176,19 @@ class BotHandlers:
                 self.user_dates[user_id] = date_str
 
                 formatted_date = date_obj.strftime('%d.%m.%Y')
-                date_parts = self.url_handler.get_custom_date_formatted(date_str)
-                format_info = f"{date_parts['MM']}{date_parts['DD']}{date_parts['YY']}"
+
+                keyboard = [
+                    [InlineKeyboardButton("ESTU", callback_data='estu')],
+                    [InlineKeyboardButton("STU", callback_data='stu')],
+                    [InlineKeyboardButton("ASTU", callback_data='astu')],
+                    [InlineKeyboardButton("Cripto", callback_data='cripto')]
+                ]
+                reply_markup = InlineKeyboardMarkup(keyboard)
 
                 await update.message.reply_text(
-                    f"Дата установлена: {formatted_date}\n"
-                    f"Формат для URL: {format_info}\n\n"
-                    "Теперь при нажатии кнопок будут загружены графики за эту дату.\n"
-                    "Используйте /resetdate для возврата к текущей дате."
+                    f"Дата установлена: {formatted_date}\n\n"
+                    "Выберите категорию для скачивания графиков:",
+                    reply_markup=reply_markup
                 )
                 logger.info(f"Date set to {date_str} for user: {user_id}")
 
