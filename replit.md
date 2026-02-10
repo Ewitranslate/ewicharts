@@ -1,7 +1,10 @@
 # Telegram Bot
 
 ## Overview
-A Telegram bot application built with Python and the `python-telegram-bot` library (v21.3). The bot handles URL-related functionality with multiple URL list files for different categories.
+A Telegram bot application built with Python and the `python-telegram-bot` library (v21.3). The bot downloads chart images from elliottwave.com by category (ESTU, STU, ASTU, Cripto), packs them into ZIP archives, and sends them to users.
+
+## Recent Changes
+- 2026-02-10: /start now auto-sets yesterday's date and shows category buttons. Button press downloads images and sends ZIP archive with name format: `DD_MM_YY_CategoryName.zip`.
 
 ## Project Architecture
 - `main.py` - Entry point, starts the bot
