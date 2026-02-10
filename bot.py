@@ -4,7 +4,7 @@ Telegram bot implementation with basic command handling and message processing.
 
 import logging
 from telegram.ext import Application, CommandHandler, MessageHandler, CallbackQueryHandler, filters
-from telegram import Update
+from telegram import Update, BotCommand
 from telegram.ext import ContextTypes
 from handlers import BotHandlers
 from config import Config
@@ -76,11 +76,14 @@ class TelegramBot:
         try:
             logger.info("Starting bot with polling...")
             
-            # Initialize and start the application
             await self.application.initialize()
             await self.application.start()
-            
-            # Start polling
+
+            await self.application.bot.set_my_commands([
+                BotCommand("start", "Скачать графики (вчерашняя дата)"),
+                BotCommand("setdate", "Установить дату и скачать графики"),
+            ])
+
             await self.application.updater.start_polling(
                 drop_pending_updates=True,
                 allowed_updates=Update.ALL_TYPES
