@@ -45,10 +45,10 @@ class URLHandler:
     def add_url_to_category(self, category: str, url: str) -> bool:
         """Add URL to specified category file."""
         try:
-            if category not in self.category_files:
+            if category not in self.url_files:
                 return False
             
-            file_path = self.category_files[category]
+            file_path = self.url_files[category]
             
             # Check if URL already exists
             existing_urls = self.load_urls_from_file(category)
@@ -67,10 +67,10 @@ class URLHandler:
     def remove_url_from_category(self, category: str, url: str) -> bool:
         """Remove URL from specified category file."""
         try:
-            if category not in self.category_files:
+            if category not in self.url_files:
                 return False
             
-            file_path = self.category_files[category]
+            file_path = self.url_files[category]
             existing_urls = self.load_urls_from_file(category)
             
             if url not in existing_urls:
