@@ -21,7 +21,8 @@ CATEGORY_NAMES = {
     'estu': 'ESTU',
     'stu': 'STU',
     'astu': 'ASTU',
-    'cripto': 'Cripto'
+    'cripto': 'Cripto',
+    'soc': 'Социономист'
 }
 
 
@@ -57,7 +58,8 @@ class BotHandlers:
                 [InlineKeyboardButton("ESTU", callback_data='estu')],
                 [InlineKeyboardButton("STU", callback_data='stu')],
                 [InlineKeyboardButton("ASTU", callback_data='astu')],
-                [InlineKeyboardButton("Cripto", callback_data='cripto')]
+                [InlineKeyboardButton("Cripto", callback_data='cripto')],
+                [InlineKeyboardButton("Социономист", callback_data='soc')]
             ]
             reply_markup = InlineKeyboardMarkup(keyboard)
 
@@ -181,7 +183,8 @@ class BotHandlers:
                     [InlineKeyboardButton("ESTU", callback_data='estu')],
                     [InlineKeyboardButton("STU", callback_data='stu')],
                     [InlineKeyboardButton("ASTU", callback_data='astu')],
-                    [InlineKeyboardButton("Cripto", callback_data='cripto')]
+                    [InlineKeyboardButton("Cripto", callback_data='cripto')],
+                    [InlineKeyboardButton("Социономист", callback_data='soc')]
                 ]
                 reply_markup = InlineKeyboardMarkup(keyboard)
 
@@ -391,6 +394,45 @@ class BotHandlers:
         zip_buffer.seek(0)
         return zip_buffer
 
+    async def _handle_socionomist(self, query, user_id: int, context):
+        """Download and send the Socionomist PDF."""
+        url = self.url_handler.get_socionomist_url()
+        from datetime import datetime as _dt
+        now = _dt.now()
+        folder_month = now.month + 1 if now.month < 12 else 1
+        folder_year = now.year if now.month < 12 else now.year + 1
+        month_str = f"{folder_month:02d}"
+        label = f"{folder_year}/{month_str}"
+
+        await query.edit_message_text(text=f"Социономист {label}\n\nЗагружаю PDF...")
+
+        try:
+            async with __import__('httpx').AsyncClient(timeout=60.0, follow_redirects=True) as client:
+                response = await client.get(url)
+                if response.status_code == 200:
+                    filename_year = folder_year - 1
+                    filename = f"{filename_year}-{month_str}-SOC.pdf"
+                    pdf_data = io.BytesIO(response.content)
+                    await query.edit_message_text(
+                        text=f"Социономист {label}\n\nОтправляю PDF..."
+                    )
+                    await context.bot.send_document(
+                        chat_id=user_id,
+                        document=pdf_data,
+                        filename=filename,
+                        caption=f"Социономист — {label}"
+                    )
+                    logger.info(f"Sent Socionomist PDF '{filename}' to user {user_id}")
+                else:
+                    await query.edit_message_text(
+                        text=f"Социономист {label}\n\nНе удалось скачать PDF (HTTP {response.status_code}).\nСсылка: {url}"
+                    )
+        except Exception as e:
+            logger.warning(f"Failed to download Socionomist PDF: {e}")
+            await query.edit_message_text(
+                text=f"Социономист {label}\n\nОшибка загрузки PDF.\nСсылка: {url}"
+            )
+
     async def button_callback(self, update: Update, context: ContextTypes.DEFAULT_TYPE):
         """Handle button callback — download images and send as ZIP."""
         try:
@@ -401,6 +443,10 @@ class BotHandlers:
             user = update.effective_user
             user_id = user.id
             custom_date = self.user_dates.get(user_id)
+
+            if button_data == 'soc':
+                await self._handle_socionomist(query, user_id, context)
+                return
 
             if custom_date:
                 date_parts = self.url_handler.get_custom_date_formatted(custom_date)

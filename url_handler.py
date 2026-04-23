@@ -126,6 +126,26 @@ class URLHandler:
         
         return daily_urls
     
+    def get_socionomist_url(self) -> str:
+        """Generate the Socionomist PDF URL based on current date.
+        
+        The URL uses next month as the target, e.g. if current month is February 2026:
+        folder: 2026/03, filename: 2025-03-SOC.pdf
+        """
+        now = datetime.now()
+        if now.month == 12:
+            folder_month = 1
+            folder_year = now.year + 1
+        else:
+            folder_month = now.month + 1
+            folder_year = now.year
+        filename_year = folder_year - 1
+        month_str = f"{folder_month:02d}"
+        return (
+            f"https://my.elliottwave.com/chartfolder/publications/SOC/"
+            f"{folder_year}/{month_str}/{filename_year}-{month_str}-SOC.pdf"
+        )
+
     def get_urls_for_button(self, button_data: str, custom_date: str = None) -> List[str]:
         """Get URLs for specific button with optional custom date."""
         return self.generate_daily_urls(button_data, custom_date)
